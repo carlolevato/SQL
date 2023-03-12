@@ -1,0 +1,28 @@
+-- based on the incredible pokemon dataset provided here: https://gist.github.com/pamelafox/26b9357c6120d3d0d27c2b90c950e8c6
+-- EXAMPLE: my friend is building a new competitive pokemon team. they're stuck on who their final pokemon should be and have asked me to provide some options. 
+-- they need a pokemon who has a high health and defensive stat, and the types that would best fit their team are dragon, fairy, or ghost type pokemon. 
+-- they started playing pokemon with generation 4, so they would like a pokemon who was introduced in gen 4 or later so they could be the most familiar. 
+-- to top it off, they have a preference for legendary pokemon because they don't have any other legendaries on their team so far. 
+-- here is a query i ran to meet all of that criteria.
+
+select 
+name, 
+Type_1, 
+Type_2,
+generation,
+    case
+        when type_1="Dragon" then "yes"
+        when type_2="Dragon" then "yes"
+        when type_1="Fairy" then "yes"
+        when type_2="Fairy" then "yes"
+        when type_1="Ghost" then "yes"
+        when type_2="Ghost" then "yes"
+        else "no"
+    end as "specified type?",
+((hp+defense)/2) as health_ranking
+from pokemon
+where legendary like "true" and "specified type?"="yes" and health_ranking >100
+group by name
+having generation >= 4
+order by health_ranking desc;
+
