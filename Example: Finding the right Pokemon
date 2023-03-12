@@ -19,7 +19,7 @@ generation,
         when type_2="Ghost" then "yes"
         else "no"
     end as "specified type?",
-((hp+defense)/2) as health_ranking
+round((hp+defense)/2) as health_ranking
 from pokemon
 where legendary like "true" and "specified type?"="yes" and health_ranking >100
 group by name
