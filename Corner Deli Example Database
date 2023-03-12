@@ -1,0 +1,46 @@
+--my first ever attempt at writing a query! 
+--create an example database for an old school italian corner deli
+
+create table 
+corner_deli
+(id integer primary key autoincrement, 
+item text, 
+cost integer, 
+price integer,
+daily_sales integer);
+
+insert into corner_deli(item, cost, price, daily_sales)
+values 
+('italian beef', 3.25, 5.5, 40),
+('breaded steak', 4.2, 6.5, 30),
+('italian sub', 2.7, 5, 55),
+('american sub', 2.4, 5, 30),
+('meatball sub', 3.6, 5.25, 20),
+('rice balls', 1.8, 3.0, 20),
+('meatloaf dinner', 4.5, 9, 60),
+('pasta dinner', 4.25, 9, 25),
+('potato salad 1 lb', 2, 5, 10),
+('pasta salad 1 lb', 1.4, 5, 20),
+('bottled water', .16, 1, 80),
+('soda', .75, 1.80, 200),
+('soda (glass bottle)', 1, 1.50, 40),
+('plain chips', .25, 1, 60),
+('corn chips', .35, 1, 80);
+
+-- display the database as created
+
+select * from corner_deli;
+
+-- display the best performing items
+
+select
+*
+from corner_deli 
+where price > 4 order by price desc, daily_sales desc;
+
+-- display daily profits from just the best items
+
+select
+sum((price - cost) * daily_sales) as 'daily profit from best items'
+from corner_deli
+where price > 4 order by price desc, daily_sales desc;
