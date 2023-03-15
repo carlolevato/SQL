@@ -1,0 +1,141 @@
+/* Created tables about actors, movies/shows they've been a part of, and the characters they played in each title. Added IDs for each title and franchise. a quick, small amount of dummy data was created and used for practice. */
+
+CREATE TABLE
+actors (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+name TEXT);
+
+CREATE TABLE
+characters (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+actor_id INTEGER,
+name TEXT,
+appearance_id INTEGER,
+series_id INTEGER);
+
+CREATE TABLE
+title_info (
+title TEXT,
+title_id INTEGER PRIMARY KEY AUTOINCREMENT,
+franchise TEXT,
+franchise_id INTEGER);
+
+INSERT INTO actors (name) VALUES
+("Pedro Pascal"),
+("Ana De Armas"),
+("Scarlett Johansson"),
+("Florence Pugh"),
+("Harry Styles"),
+("Chris Pine"),
+("Adam Driver"),
+("Chris Evans");
+
+INSERT INTO title_info (title, franchise, franchise_id) VALUES
+("Kingsman Golden Circle", "Kingsman", 1),
+("The Equalizer 2", "Equalizer", 2),
+("The Mandalorian", "Star Wars", 3),
+("Black Widow", "MCU", 4),
+("The Eternals", "MCU", 4),
+("Dunkirk", "Dunkirk", 5),
+("Wonder Woman 1984", "DCEU", 6),
+("Don't Worry Darling", "Don't Worry Darling", 7),
+("Outlaw King", "Outlaw King", 8),
+("Marriage Story", "Marriage Story", 9),
+("Star Wars - The Force Awakens", "Star Wars", 3),
+("The Last Duel", "The Last Duel", 10),
+("Ghosted", "Ghosted", 11),
+("The Gray Man", "The Gray Man", 12),
+("Knives Out", "Knives Out", 13),
+("Avengers", "MCU", 4);
+
+INSERT INTO characters (actor_id, name, appearance_id, series_id) VALUES 
+(1, "Maxwell Lord", 7, 6),
+(1, "Whiskey", 1, 1),
+(1, "Dave York", 2, 2),
+(1, "The Mandalorian", 3, 3),
+(2, "Sadie", 13, 11),
+(2, "Dani Miranda", 14, 12),
+(2, "Marta Cabrera", 15, 13),
+(3, "Natasha Romanoff", 4, 4),
+(3, "Natasha Romanoff", 16, 4),
+(3, "Nicole Barber", 10, 9),
+(4, "Yelena Belova", 4, 4),
+(4, "Alice", 8, 7),
+(4, "Elizabeth de Burgh", 9, 8),
+(5, "Jack", 8, 7),
+(5, "Starfox", 5, 4),
+(5, "Private Alex", 6, 5),
+(6, "Steve Trevor", 7, 6),
+(6, "Frank", 8, 7),
+(6, "Robert the Bruce", 9, 8),
+(7, "Charlie Barber", 10, 9),
+(7, "Kylo Ren", 11, 3),
+(7, "Jacques Le Gris", 12, 10),
+(8, "Cole Riggan", 13, 11),
+(8, "Lloyd Hansen", 14, 12),
+(8, "Ransom Drysdale", 15, 13),
+(8, "Steve Rogers", 16, 4);
+
+/* displayed all the tables and data to double check as i wrote the queries */
+
+SELECT * FROM actors;
+SELECT * FROM characters;
+SELECT * FROM title_info ORDER BY franchise_id, title asc;
+
+/* used JOIN clauses to combine all of the relevant data into one table */
+
+SELECT a.name as actor, b.name as character, c.title, c.franchise
+FROM actors a
+JOIN characters b
+ON a.id=b.actor_id
+JOIN title_info c
+ON b.series_id=c.franchise_id AND b.appearance_id=c.title_id
+ORDER BY actor, c.franchise;
+
+/* added an aggregate clause to determine which actors were in the MCU franchise and how many times they appeared in it */
+
+SELECT a.name as actor, b.name as character, c.franchise, COUNT(c.franchise_id) as appearances
+FROM actors a
+JOIN characters b 
+ON a.id=b.actor_id
+JOIN title_info c 
+ON b.series_id=c.franchise_id AND b.appearance_id=c.title_id
+WHERE c.franchise_id = 4
+GROUP BY actor
+ORDER BY appearances DESC;
+
+/* wanted to find films that ana de armas and chris evans both starred in. even though i only needed information from the title_info table using information from the actors table to search, it was still necessary to join the character table as a bridge between tables a and c because they had no columns in common. after setting up the search, i could use one actor's id value to search, but not both, so i felt the simplest solution would be using an INTERSECT clause. here, we can see ana & chris have appeared in a few movies together */
+
+SELECT c1.title as titles
+FROM actors a1
+JOIN characters b1
+ON a1.id=b1.actor_id
+JOIN title_info c1
+ON b1.series_id=c1.franchise_id AND b1.appearance_id=c1.title_id
+WHERE a1.id=2
+INTERSECT
+SELECT c2.title
+FROM actors a2
+JOIN characters b2
+ON a2.id=b2.actor_id
+JOIN title_info c2
+ON b2.series_id=c2.franchise_id AND b2.appearance_id=c2.title_id
+WHERE a2.id=8;
+
+/* and on florence pugh and chris pine to verify that it works with other values */
+
+SELECT c1.title as titles
+FROM actors a1
+JOIN characters b1
+ON a1.id=b1.actor_id
+JOIN title_info c1
+ON b1.series_id=c1.franchise_id AND b1.appearance_id=c1.title_id
+WHERE a1.id=4
+INTERSECT
+SELECT c2.title
+FROM actors a2
+JOIN characters b2
+ON a2.id=b2.actor_id
+JOIN title_info c2
+ON b2.series_id=c2.franchise_id AND b2.appearance_id=c2.title_id
+WHERE a2.id=6;
