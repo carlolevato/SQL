@@ -1,0 +1,115 @@
+# For this project I used Kaggle to download a dataset on the Top 50 songs on Spotify in 2021.
+# I added the following table to SQLite, and imported the csv file data.
+
+CREATE TABLE BIT_DB.Spotifydata (
+id integer PRIMARY KEY,
+artist_name varchar NOT NULL,
+track_name varchar NOT NULL,
+track_id varchar NOT NULL,
+popularity integer NOT NULL,
+danceability decimal(4,3) NOT NULL,
+energy decimal(4,3) NOT NULL,
+key integer NOT NULL,
+loudness decimal(5,3) NOT NULL,
+mode integer NOT NULL,
+speechiness decimal(5,4) NOT NULL,
+acousticness decimal(6,5) NOT NULL,
+instrumentalness text NOT NULL,
+liveness decimal(5,4) NOT NULL,
+valence decimal(4,3) NOT NULL,
+tempo decimal(6,3) NOT NULL,
+duration_ms integer NOT NULL,
+time_signature integer NOT NULL 
+)
+
+# From here, I decided to have a little fun and pretend I was having a real-time back and forth with a hypothetical music producer, looking to produce the next big hit.
+# There's a lot more I would like to do with the data, and more that I have playeyed around with, but this felt like a decent example of the type of queries I'd been running.
+
+
+# What keys are the 10 most popular songs in? What are the titles and artists?
+
+SELECT popularity, song_key, track_name, artist_name
+FROM BIT_DB.Spotifydata
+ORDER BY popularity desc
+LIMIT 10;
+
+# What are the most common song keys, including any ties, and sort the ties by most popular?
+
+SELECT song_key, count(song_key) as key_occurrences
+FROM BIT_DB.Spotifydata
+GROUP BY song_key
+ORDER BY key_occurrences desc, popularity desc;
+
+# It seems like key 1 is the most common in both the top 10 and overall top 50 songs. By most to least popular, what are all the songs in this key?
+
+SELECT popularity, track_name, artist_name
+FROM BIT_DB.Spotifydata
+WHERE song_key = 1
+ORDER BY popularity desc;
+
+# Are there more songs by any of those artists in the TOP 50?
+
+SELECT track_name, artist_name
+FROM BIT_DB.Spotifydata
+WHERE artist_name IN ( SELECT artist_name
+FROM BIT_DB.Spotifydata
+WHERE song_key = 1 );
+
+# Order the list by most popular, show the keys of all the songs.
+
+SELECT track_name, artist_name, song_key
+FROM BIT_DB.Spotifydata
+WHERE artist_name IN ( SELECT artist_name
+FROM BIT_DB.Spotifydata
+WHERE song_key = 1 )
+ORDER BY popularity desc;
+
+# Who is the most common artist from those results?
+
+SELECT artist_name, count(artist_name)
+FROM BIT_DB.Spotifydata
+WHERE artist_name IN ( SELECT artist_name
+FROM BIT_DB.Spotifydata
+WHERE song_key = 1 )
+GROUP BY artist_name
+ORDER BY count(artist_name) desc
+LIMIT 1;
+
+# And how does this result compare to simply finding the artist with the most TOP 50 songs?
+
+SELECT artist_name, count(artist_name) as prevalence
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name
+ORDER BY prevalence desc
+LIMIT 5;
+
+# Interesting, a tie. Did the other most prevalent artist have any songs in key 1?
+
+SELECT *
+FROM BIT_DB.Spotifydata
+WHERE artist_name = 'Olivia Rodrigo' AND song_key = '1';
+
+# (The previous result returned the table, with no rows, whereas just searching for the artist did bring back her TOP 50 songs. She had no songs in key 1). 
+# Okay, it seems like song key being 1 isn't necessarily the secret to success, but it might help. Let's try another angle, take both artists and check the tempo of their songs.
+
+SELECT artist_name, track_name, song_key, tempo
+FROM BIT_DB.Spotifydata
+WHERE artist_name = 'Olivia Rodrigo' OR artist_name = 'Doja Cat';
+
+# Well, every song in this result is in a different key, but 7 out of 8 have a tempo of 100 or higher. Check all the TOP 50 songs, and see if more rows are returned for songs with a tempo greater than 100 or less than 100.
+
+SELECT artist_name, track_name, song_key, tempo
+FROM BIT_DB.Spotifydata
+WHERE tempo > 100.00;
+
+-- 37 greater than 100
+
+SELECT artist_name, track_name, song_key, tempo
+FROM BIT_DB.Spotifydata
+WHERE tempo < 100.00;
+
+-- 13 less than 100
+
+# So one thing we CAN say conclusively is that popular songs tend to have a higher tempo. In addition, while it could be coincidence, songs in key 1 are the most common among the TOP 50. 
+# Let it also be noted that both of the most prevalent artists are female. Therefore, the data seems to indicate that an up-tempo song in key 1 by a female artist would have a higher chance of succeeding.
+# However, much more analysis would be needed on this dataset and those of other years to determine a successful song 'formula'.
