@@ -1,0 +1,25 @@
+# For the following queries I used an example dataset based on a city's bike lanes. The table created contains two rows for each street, with different safety ratings given by different inspectors.
+
+# Request: Demonstrate how to use a CTE by running a query that does the following - 1. Selects the average safetyrating for each bike lane; 2. Filters to only the bike lanes that have an average safety rating of 4.0 or higher; 3. Creates a label for these bike lanes that says "Safe Lane"
+
+WITH safety_average_cte AS ( 
+SELECT street, AVG(safetyrating) as safety_average
+FROM CityBikeLanes  
+GROUP BY street
+)
+SELECT *, 'Safe Lane' AS tag
+FROM safety_average_cte
+WHERE safety_average >= 4.0;
+
+# Of course, after completing this request I immediately thought, "Why give a 'Safe Lane' label if the only rows being returned are the safe ones?" This is addressed in the following request.
+
+# Request: a list of all the bike lanes, both safety ratings for each lane, the average safety rating for each lane, and a label with the recommendation as "Remove" for lanes with an average below 2.5, "Leave As-Is" for those 4.0 and above, and "Improvements Needed" for the rest.
+
+SELECT street, safetyrating,
+avg(safetyrating) OVER (PARTITION BY street) as safety_average,
+CASE
+when avg(safetyrating) OVER (PARTITION BY street) >= 4.0 then 'Leave As-Is'
+when avg(safetyrating) OVER (PARTITION BY street) < 2.5 then 'Remove'
+else 'Improvements Needed'
+END as 'Recommendation'
+FROM CityBikeLanes;
