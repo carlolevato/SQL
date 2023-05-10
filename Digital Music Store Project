@@ -1,0 +1,86 @@
+# For the following project, I've used the popular "Chinook" database, which contains data for a hypothetical digital music store.
+
+
+# List all the countries shipped to.
+
+SELECT DISTINCT BillingCountry
+FROM chinook.invoices;
+
+# Which country was shipped to the third most often?
+# (Note: for this one I could have used LIMIT 1 OFFSET 2, but I felt CTEs were better in the event of multiple results with equal value)
+
+
+WITH 
+
+count_cte AS 
+( SELECT BillingCountry, count(*) as cnt
+FROM invoices 
+GROUP BY BillingCountry ),
+
+rank_cte AS
+( SELECT *,
+RANK() OVER(ORDER BY cnt desc) as rank
+FROM count_cte )
+
+SELECT *
+FROM rank_cte
+WHERE rank = 3
+
+# What are all the different cities in France that have been shipped to, sorted by most to least shipments?
+
+SELECT BillingCity, count(*) as shipments
+FROM invoices
+WHERE BillingCountry = 'France'
+GROUP BY BillingCity
+ORDER by shipments desc
+
+# Who was the employee with the highest total sales?
+
+SELECT emp.EmployeeId, emp.FirstName, emp.LastName, round(sum(Total), 2) as total_sales
+FROM invoices inv
+JOIN customers cust
+ON inv.CustomerId=cust.CustomerId
+JOIN employees emp
+ON emp.EmployeeId=cust.SupportRepId
+GROUP BY emp.EmployeeId
+ORDER BY total_sales DESC
+LIMIT 1
+
+# Which employee had the largest individual sale, and what was the total?
+
+SELECT emp.EmployeeId, emp.FirstName, emp.LastName, Total
+FROM invoices inv
+JOIN customers cust
+ON inv.CustomerId=cust.CustomerId
+JOIN employees emp
+ON emp.EmployeeId=cust.SupportRepId
+ORDER BY total DESC
+LIMIT 1
+
+# Who was the most popular composer of all tracks sold?
+
+SELECT b.Composer, count(b.Composer) artist_count
+FROM invoice_items a
+JOIN tracks b
+ON a.TrackId=b.TrackId
+WHERE b.Composer NOT NULL
+GROUP BY b.composer
+ORDER BY artist_count desc
+LIMIT 1
+
+# Display total sales for 2009 and 2010 combined
+
+SELECT round(sum(Total), 2)
+FROM invoices
+WHERE InvoiceDate like "2009%" or InvoiceDate like "2010%"
+
+# What is the yearly sales average based on only 2009 and 2011?
+
+WITH specific_years AS
+
+( SELECT round(sum(Total), 2) as sales
+FROM invoices
+WHERE InvoiceDate like "2009%" or InvoiceDate like "2011%" )
+
+SELECT sales/2 AS average
+FROM specific_years
