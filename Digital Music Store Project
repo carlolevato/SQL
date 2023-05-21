@@ -42,7 +42,7 @@ JOIN customers cust
 ON inv.CustomerId=cust.CustomerId
 JOIN employees emp
 ON emp.EmployeeId=cust.SupportRepId
-GROUP BY emp.EmployeeId
+GROUP BY emp.EmployeeId, emp.FirstName, emp.LastName
 ORDER BY total_sales DESC
 LIMIT 1
 
